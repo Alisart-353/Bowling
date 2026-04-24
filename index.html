@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>BowlingPro+ · Plataforma Profesional</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#0a0c10;--bg2:#111418;--bg3:#181c22;--card:#1e232b;--border:#2a3040;
+  --accent:#f97316;--accent2:#fb923c;--blue:#3b82f6;--green:#22c55e;
+  --purple:#a855f7;--red:#ef4444;--text:#f1f5f9;--muted:#64748b;
+  --radius:12px;--shadow:0 4px 24px rgba(0,0,0,.4);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;min-height:100vh;overflow-x:hidden}
+h1,h2,h3,h4{font-family:'Barlow Condensed',sans-serif;letter-spacing:.02em}
+/* SPLASH */
+#splash{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1000;transition:opacity .6s}
+#splash.out{opacity:0;pointer-events:none}
+.splash-logo{font-family:'Barlow Condensed',sans-serif;font-size:clamp(48px,12vw,96px);font-weight:800;color:var(--accent);line-height:1;letter-spacing:.04em;text-align:center}
+.splash-sub{color:var(--muted);font-size:16px;margin-top:8px;letter-spacing:.1em;text-transform:uppercase}
+.splash-lines{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.splash-line{position:absolute;height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent);opacity:.15;animation:scanline 3s ease-in-out infinite}
+@keyframes scanline{0%{top:-10%;width:100%}100%{top:110%;width:100%}}
+.splash-tap{margin-top:48px;color:var(--muted);font-size:14px;animation:blink 1.5s ease-in-out infinite;cursor:pointer}
+@keyframes blink{0%,100%{opacity:.4}50%{opacity:1}}
+.ball-icon{width:80px;height:80px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#f97316,#7c2d12);box-shadow:0 0 40px rgba(249,115,22,.3);margin-bottom:24px;position:relative}
+.ball-icon::after{content:'';position:absolute;top:22px;left:28px;width:5px;height:14px;border-radius:3px;background:rgba(0,0,0,.4);box-shadow:8px -4px 0 rgba(0,0,0,.4),-4px 6px 0 rgba(0,0,0,.4)}
+/* AUTH */
+#auth-screen{display:none;min-height:100vh;align-items:center;justify-content:center;padding:20px}
+#auth-screen.active{display:flex}
+.auth-box{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:40px;width:100%;max-width:400px;box-shadow:var(--shadow)}
+.auth-box h2{font-size:28px;font-weight:700;margin-bottom:8px}
+.auth-box p.sub{color:var(--muted);font-size:14px;margin-bottom:28px}
+.auth-tabs{display:flex;gap:4px;background:var(--bg2);border-radius:8px;padding:4px;margin-bottom:24px}
+.auth-tab{flex:1;padding:8px;border:none;background:transparent;color:var(--muted);cursor:pointer;border-radius:6px;font-family:'Barlow',sans-serif;font-size:14px;font-weight:500;transition:.2s}
+.auth-tab.active{background:var(--accent);color:#fff}
+/* FORMS */
+.form-group{margin-bottom:16px}
+.form-group label{display:block;font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.form-group input,.form-group select,.form-group textarea{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:11px 14px;color:var(--text);font-family:'Barlow',sans-serif;font-size:15px;outline:none;transition:.2s}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--accent)}
+.form-group select option{background:var(--bg2)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 20px;border:none;border-radius:8px;font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;letter-spacing:.04em;cursor:pointer;transition:.2s;text-decoration:none;white-space:nowrap}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:var(--accent2)}
+.btn-outline{background:transparent;color:var(--text);border:1px solid var(--border)}
+.btn-outline:hover{border-color:var(--accent);color:var(--accent)}
+.btn-danger{background:var(--red);color:#fff}
+.btn-sm{padding:8px 14px;font-size:14px}
+.btn-full{width:100%}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+/* APP */
+#app{display:none;min-height:100vh;flex-direction:column}
+#app.active{display:flex}
+/* TOPBAR */
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:100}
+.topbar-brand{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800;color:var(--accent)}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.user-pill{background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:13px;color:var(--muted)}
+.user-pill span{color:var(--text)}
+/* NAV */
+.bottom-nav{background:var(--bg2);border-top:1px solid var(--border);display:flex;position:sticky;bottom:0;z-index:100}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;background:none;border:none;color:var(--muted);cursor:pointer;font-family:'Barlow',sans-serif;font-size:11px;transition:.2s;border-top:2px solid transparent}
+.nav-btn.active{color:var(--accent);border-top-color:var(--accent)}
+.nav-icon{font-size:20px}
+/* PAGES */
+.page{display:none;flex:1;padding:20px;max-width:700px;margin:0 auto;width:100%}
+.page.active{display:block}
+/* HOME */
+.home-hero{background:linear-gradient(135deg,var(--bg3) 0%,#1a1208 100%);border:1px solid var(--border);border-radius:var(--radius);padding:28px 24px;margin-bottom:24px;position:relative;overflow:hidden}
+.home-hero::before{content:'🎳';position:absolute;right:-10px;top:-10px;font-size:100px;opacity:.06}
+.home-hero h1{font-size:clamp(28px,6vw,42px);font-weight:800;line-height:1.1}
+.home-hero h1 span{color:var(--accent)}
+.home-hero p{color:var(--muted);margin-top:8px;font-size:15px}
+/* ACTION GRID */
+.action-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:24px}
+.action-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;cursor:pointer;transition:.2s;display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden}
+.action-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 8px 24px rgba(249,115,22,.12)}
+.action-card.done::after{content:'✓';position:absolute;top:10px;right:12px;color:var(--green);font-size:18px;font-weight:700}
+.action-card-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px}
+.action-card h3{font-size:17px;font-weight:700;line-height:1.2}
+.action-card p{color:var(--muted);font-size:13px;line-height:1.4}
+.action-card .dot{width:8px;height:8px;border-radius:50%;background:#2a3040;margin-top:auto}
+.action-card.done .dot{background:var(--green)}
+.ib-orange{background:rgba(249,115,22,.15)}
+.ib-blue{background:rgba(59,130,246,.15)}
+.ib-green{background:rgba(34,197,94,.15)}
+.ib-purple{background:rgba(168,85,247,.15)}
+/* PROGRESS */
+.progress-bar{background:var(--bg3);border-radius:4px;height:6px;overflow:hidden;margin-bottom:20px}
+.progress-fill{height:100%;background:var(--accent);border-radius:4px;transition:width .4s}
+.progress-label{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:6px}
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;align-items:flex-end;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--card);border-radius:var(--radius) var(--radius) 0 0;width:100%;max-width:640px;max-height:92vh;overflow-y:auto;padding:24px 20px 36px;border-top:1px solid var(--border)}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.modal-title{font-size:22px;font-weight:700}
+.modal-close{background:var(--bg3);border:1px solid var(--border);border-radius:8px;width:34px;height:34px;color:var(--muted);cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center}
+@media(min-width:600px){.modal-overlay{align-items:center}.modal{border-radius:var(--radius);max-height:88vh}}
+/* VIDEO */
+.video-drop{border:2px dashed var(--border);border-radius:var(--radius);padding:32px 20px;text-align:center;cursor:pointer;transition:.2s;background:var(--bg2)}
+.video-drop:hover{border-color:var(--accent)}
+.video-list{display:flex;flex-direction:column;gap:10px;margin-top:16px}
+.video-item{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px;display:flex;align-items:center;gap:12px}
+.video-thumb{width:56px;height:40px;background:var(--bg3);border-radius:6px;overflow:hidden;flex-shrink:0}
+.video-thumb video{width:100%;height:100%;object-fit:cover}
+.video-info{flex:1;min-width:0}
+.video-info p{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.video-info span{font-size:12px;color:var(--muted)}
+.video-remove{background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px;padding:4px}
+/* ALERT */
+.alert{border-radius:8px;padding:12px 16px;font-size:14px;margin-bottom:16px;line-height:1.5}
+.alert-orange{background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.3);color:#fdba74}
+.alert-green{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);color:#86efac}
+.alert-blue{background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.3);color:#93c5fd}
+/* AI RESULT */
+.ai-result{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-top:16px;line-height:1.75;font-size:14px;word-break:break-word}
+.ai-result h3{font-family:'Barlow Condensed',sans-serif;color:var(--accent);margin:18px 0 6px;font-size:18px}
+.ai-result strong{color:var(--text)}
+.ai-result hr{border:none;border-top:1px solid var(--border);margin:14px 0}
+.streaming-cursor::after{content:'▋';animation:cur .8s step-end infinite;color:var(--accent)}
+@keyframes cur{0%,100%{opacity:1}50%{opacity:0}}
+/* GENERATING */
+.gen-box{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:32px 20px;text-align:center;margin-top:16px}
+.gen-box .spin{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.gen-box p{color:var(--muted);font-size:14px;margin-top:6px}
+/* CHAT */
+.chat-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);display:flex;flex-direction:column;height:420px}
+.chat-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px}
+.chat-msg{max-width:82%;padding:10px 14px;border-radius:10px;font-size:14px;line-height:1.6;word-break:break-word}
+.chat-msg.user{background:var(--accent);color:#fff;align-self:flex-end;border-bottom-right-radius:3px}
+.chat-msg.bot{background:var(--bg3);color:var(--text);align-self:flex-start;border-bottom-left-radius:3px}
+.chat-input-row{border-top:1px solid var(--border);display:flex;gap:8px;padding:10px}
+.chat-input{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-family:'Barlow',sans-serif;font-size:14px;outline:none}
+.chat-input:focus{border-color:var(--accent)}
+.chat-send{background:var(--accent);border:none;border-radius:8px;width:40px;height:40px;color:#fff;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.chat-send:disabled{opacity:.4;cursor:not-allowed}
+.quick-btns{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.typing-dots{display:flex;gap:4px;align-items:center;padding:4px 0}
+.typing-dots span{width:7px;height:7px;border-radius:50%;background:var(--muted);animation:td .8s ease-in-out infinite}
+.typing-dots span:nth-child(2){animation-delay:.15s}
+.typing-dots span:nth-child(3){animation-delay:.3s}
+@keyframes td{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
+/* HISTORY */
+.history-item{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:.2s}
+.history-item:hover{border-color:var(--accent)}
+.history-icon{font-size:22px;width:44px;height:44px;background:var(--bg3);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.history-info h4{font-size:16px;font-weight:600;margin-bottom:3px}
+.history-info p{color:var(--muted);font-size:13px}
+.empty-state{text-align:center;padding:40px 20px;color:var(--muted)}
+.empty-state .ei{font-size:48px;margin-bottom:12px}
+/* ADMIN */
+.admin-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+.stat-box{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;text-align:center}
+.stat-box .num{font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:800;color:var(--accent)}
+.stat-box .lbl{font-size:12px;color:var(--muted);margin-top:2px}
+.table-wrap{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:16px}
+.table-wrap table{width:100%;border-collapse:collapse}
+.table-wrap th{background:var(--bg3);padding:10px 14px;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;text-align:left;border-bottom:1px solid var(--border)}
+.table-wrap td{padding:10px 14px;font-size:14px;border-bottom:1px solid var(--border)}
+.table-wrap tr:last-child td{border-bottom:none}
+.table-wrap tr:hover td{background:var(--bg2)}
+/* MISC */
+.divider{border:none;border-top:1px solid var(--border);margin:20px 0}
+.section-title{font-size:20px;font-weight:700;margin-bottom:14px}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.badge{display:inline-block;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.badge-blue{background:rgba(59,130,246,.15);color:var(--blue)}
+.badge-orange{background:rgba(249,115,22,.15);color:var(--accent)}
+.badge-green{background:rgba(34,197,94,.15);color:var(--green)}
+</style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash">
+  <div class="splash-lines">
+    <div class="splash-line" style="animation-delay:0s"></div>
+    <div class="splash-line" style="animation-delay:1s"></div>
+    <div class="splash-line" style="animation-delay:2s"></div>
+  </div>
+  <div class="ball-icon"></div>
+  <div class="splash-logo">BowlingPro+</div>
+  <div class="splash-sub">Plataforma Profesional de Análisis</div>
+  <div class="splash-tap" id="splash-tap">▶ Tocá para comenzar</div>
+</div>
+
+<!-- AUTH -->
+<div id="auth-screen">
+  <div class="auth-box">
+    <h2>🎳 BowlingPro+</h2>
+    <p class="sub">Ingresá a tu cuenta para continuar</p>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchTab('login')">Entrar</button>
+      <button class="auth-tab" onclick="switchTab('register')">Registrarse</button>
+    </div>
+    <div id="tab-login">
+      <div class="form-group"><label>Email</label><input type="email" id="login-email" placeholder="tu@email.com"/></div>
+      <div class="form-group"><label>Contraseña</label><input type="password" id="login-pass" placeholder="••••••••"/></div>
+      <button class="btn btn-primary btn-full" onclick="doLogin()">Ingresar</button>
+      <p style="text-align:center;margin-top:14px;font-size:13px;color:var(--muted)">¿Problemas? <a href="mailto:alicia@bowlingpro.com" style="color:var(--accent)">Contactar admin</a></p>
+    </div>
+    <div id="tab-register" style="display:none">
+      <div class="form-group"><label>Nombre completo</label><input type="text" id="reg-name" placeholder="Tu nombre"/></div>
+      <div class="form-group"><label>Email</label><input type="email" id="reg-email" placeholder="tu@email.com"/></div>
+      <div class="form-group"><label>Contraseña</label><input type="password" id="reg-pass" placeholder="Mínimo 6 caracteres"/></div>
+      <button class="btn btn-primary btn-full" onclick="doRegister()">Crear cuenta</button>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-brand">BowlingPro+</div>
+    <div class="topbar-right">
+      <div class="user-pill">Hola, <span id="user-name-display">—</span></div>
+      <button class="btn btn-outline btn-sm" onclick="doLogout()">Salir</button>
+    </div>
+  </div>
+
+  <!-- HOME PAGE -->
+  <div class="page active" id="page-home">
+    <div class="home-hero">
+      <h1>Elevá tu<br/><span>juego</span></h1>
+      <p>Análisis biomecánico con IA · Coach inteligente · Progreso personalizado</p>
+    </div>
+    <div class="progress-label"><span>Completado hoy</span><span id="prog-text">0 / 4 pasos</span></div>
+    <div class="progress-bar"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+    <div class="action-grid">
+      <div class="action-card" id="card-datos" onclick="openModal('modal-datos')">
+        <div class="action-card-icon ib-orange">👤</div>
+        <h3>Datos del jugador</h3>
+        <p>Perfil, nivel, bola y tipo de aceite</p>
+        <div class="dot"></div>
+      </div>
+      <div class="action-card" id="card-videos" onclick="openModal('modal-videos')">
+        <div class="action-card-icon ib-blue">🎥</div>
+        <h3>Videos</h3>
+        <p>Hasta 3 lanzamientos para analizar</p>
+        <div class="dot"></div>
+      </div>
+      <div class="action-card" id="card-analisis" onclick="openAnalisis()">
+        <div class="action-card-icon ib-green">📊</div>
+        <h3>Generar análisis</h3>
+        <p>Informe biomecánico con IA</p>
+        <div class="dot"></div>
+      </div>
+      <div class="action-card" id="card-coach" onclick="openModal('modal-coach')">
+        <div class="action-card-icon ib-purple">🏆</div>
+        <h3>Coach IA</h3>
+        <p>Estrategia en cancha al instante</p>
+        <div class="dot"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HISTORY PAGE -->
+  <div class="page" id="page-history">
+    <div class="section-title">Mis análisis</div>
+    <div id="history-list"><div class="empty-state"><div class="ei">📋</div><p>Aún no tenés análisis guardados.</p></div></div>
+  </div>
+
+  <!-- ADMIN PAGE -->
+  <div class="page" id="page-admin">
+    <div class="section-title">Panel de administración</div>
+    <div class="admin-stats">
+      <div class="stat-box"><div class="num" id="stat-users">—</div><div class="lbl">Jugadores</div></div>
+      <div class="stat-box"><div class="num" id="stat-analyses">—</div><div class="lbl">Análisis</div></div>
+      <div class="stat-box"><div class="num" id="stat-today">—</div><div class="lbl">Hoy</div></div>
+    </div>
+    <div class="section-title" style="font-size:16px">Usuarios registrados</div>
+    <div class="table-wrap">
+      <table><thead><tr><th>Nombre</th><th>Email</th><th>Rol</th><th>Fecha</th><th></th></tr></thead>
+      <tbody id="admin-users-table"><tr><td colspan="5" style="text-align:center;color:var(--muted);padding:20px">Cargando...</td></tr></tbody></table>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-outline btn-sm" onclick="exportUsers()">⬇ Exportar CSV</button>
+      <button class="btn btn-primary btn-sm" onclick="openModal('modal-add-user')">+ Agregar jugador</button>
+    </div>
+    <hr class="divider"/>
+    <div class="section-title" style="font-size:16px">Análisis recientes</div>
+    <div id="admin-analyses-list"><div class="empty-state"><p>Sin análisis aún</p></div></div>
+  </div>
+
+  <div class="bottom-nav">
+    <button class="nav-btn active" onclick="showPage('home',this)"><span class="nav-icon">🏠</span>Inicio</button>
+    <button class="nav-btn" onclick="showPage('history',this)"><span class="nav-icon">📋</span>Mis análisis</button>
+    <button class="nav-btn" id="nav-admin" style="display:none" onclick="showPage('admin',this)"><span class="nav-icon">⚙️</span>Admin</button>
+  </div>
+</div>
+
+<!-- ═══ MODALS ═══ -->
+
+<!-- DATOS -->
+<div class="modal-overlay" id="modal-datos">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">👤 Datos del jugador</div><button class="modal-close" onclick="closeModal('modal-datos')">✕</button></div>
+    <div class="form-group"><label>Nombre completo</label><input type="text" id="d-nombre" placeholder="Nombre del jugador"/></div>
+    <div class="form-row">
+      <div class="form-group"><label>Edad</label><input type="number" id="d-edad" placeholder="Años" min="5" max="99"/></div>
+      <div class="form-group"><label>Sexo</label><select id="d-sexo"><option value="">—</option><option>Femenino</option><option>Masculino</option></select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Mano dominante</label><select id="d-mano"><option value="">—</option><option>Derecha</option><option>Zurda</option></select></div>
+      <div class="form-group"><label>Estilo</label><select id="d-estilo"><option value="">—</option><option>Una mano</option><option>Dos manos</option></select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Promedio actual</label><input type="number" id="d-promedio" placeholder="Ej: 185"/></div>
+      <div class="form-group"><label>Peso de bola (lb)</label><input type="number" id="d-peso" placeholder="Ej: 15" min="6" max="16"/></div>
+    </div>
+    <div class="form-group"><label>Nivel de juego</label><select id="d-nivel"><option value="">—</option><option>Liga recreativa</option><option>Liga competitiva</option><option>Alto rendimiento</option></select></div>
+    <div class="form-group"><label>Arsenal de bolas</label><input type="text" id="d-arsenal" placeholder="Ej: Storm Phaze II, Roto Grip..."/></div>
+    <div class="form-group"><label>Tipo de aceitado</label><select id="d-aceite"><option value="">—</option><option>House Shot (patrón recreativo)</option><option>THS (Tournament House Shot)</option><option>Sport Shot</option><option>PBA Pattern</option><option>Titanium Pattern</option><option>No lo sé</option></select></div>
+    <div class="form-group"><label>Observaciones adicionales</label><textarea id="d-obs" rows="3" placeholder="Lesiones, metas, situación especial..."></textarea></div>
+    <button class="btn btn-primary btn-full" onclick="saveDatos()">Guardar datos ✓</button>
+  </div>
+</div>
+
+<!-- VIDEOS -->
+<div class="modal-overlay" id="modal-videos">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">🎥 Videos de lanzamiento</div><button class="modal-close" onclick="closeModal('modal-videos')">✕</button></div>
+    <div class="alert alert-blue">Seleccioná hasta <strong>3 videos</strong> de lanzamiento para el análisis biomecánico.</div>
+    <div class="video-drop" onclick="document.getElementById('video-input').click()">
+      <div style="font-size:40px">📹</div>
+      <p style="font-weight:600;margin-top:8px">Tocá para seleccionar videos</p>
+      <p style="color:var(--muted);font-size:13px;margin-top:4px">MP4, MOV, AVI · Máx. 3 videos</p>
+    </div>
+    <input type="file" id="video-input" accept="video/*" multiple style="display:none" onchange="handleVideos(this.files)"/>
+    <div id="video-list" class="video-list"></div>
+    <div id="video-count" style="font-size:13px;color:var(--muted);margin-top:10px"></div>
+    <button class="btn btn-primary btn-full" style="margin-top:16px" onclick="saveVideos()">Confirmar videos ✓</button>
+  </div>
+</div>
+
+<!-- ANÁLISIS -->
+<div class="modal-overlay" id="modal-analisis">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">📊 Análisis biomecánico</div><button class="modal-close" onclick="closeModal('modal-analisis')">✕</button></div>
+    <div id="an-no-datos" style="display:none">
+      <div class="alert alert-orange">⚠️ Primero completá los <strong>datos del jugador</strong>.</div>
+      <button class="btn btn-primary btn-full" onclick="closeModal('modal-analisis');openModal('modal-datos')">Ir a datos del jugador →</button>
+    </div>
+    <div id="an-ready" style="display:none">
+      <div class="alert alert-green" id="an-info"></div>
+      <button class="btn btn-primary btn-full" id="btn-generar" onclick="generarAnalisis()">🤖 Generar análisis con IA</button>
+      <div id="an-output"></div>
+      <div id="an-actions" class="btn-row" style="display:none">
+        <button class="btn btn-outline btn-sm" onclick="descargarInforme()">⬇ Descargar informe</button>
+        <button class="btn btn-outline btn-sm" onclick="guardarEnHistorial()">💾 Guardar en historial</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- COACH -->
+<div class="modal-overlay" id="modal-coach">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">🏆 STRIKER · Coach IA</div><button class="modal-close" onclick="closeModal('modal-coach')">✕</button></div>
+    <div class="quick-btns">
+      <button class="btn btn-outline btn-sm" onclick="coachQ('Necesito un ajuste ahora, estoy en medio del juego')">⚡ Ajuste ahora</button>
+      <button class="btn btn-outline btn-sm" onclick="coachQ('Tengo problemas con splits, que hago?')">🎯 Splits</button>
+      <button class="btn btn-outline btn-sm" onclick="coachQ('Como selecciono la bola correcta para este aceite?')">🎳 Selección bola</button>
+      <button class="btn btn-outline btn-sm" onclick="coachQ('Estoy nervioso antes del torneo, necesito ayuda mental')">💪 Mental</button>
+    </div>
+    <div class="chat-wrap">
+      <div class="chat-messages" id="chat-messages"></div>
+      <div class="chat-input-row">
+        <input class="chat-input" id="chat-input" type="text" placeholder="Describí tu situación en cancha..." onkeydown="if(event.key==='Enter'){event.preventDefault();sendCoach()}"/>
+        <button class="chat-send" id="btn-send" onclick="sendCoach()">➤</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD USER -->
+<div class="modal-overlay" id="modal-add-user">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">➕ Agregar jugador</div><button class="modal-close" onclick="closeModal('modal-add-user')">✕</button></div>
+    <div class="form-group"><label>Nombre</label><input type="text" id="au-name" placeholder="Nombre completo"/></div>
+    <div class="form-group"><label>Email</label><input type="email" id="au-email" placeholder="email@ejemplo.com"/></div>
+    <div class="form-group"><label>Contraseña temporal</label><input type="text" id="au-pass" placeholder="La cambiará al ingresar"/></div>
+    <div class="form-group"><label>Rol</label><select id="au-role"><option value="player">Jugador</option><option value="coach">Coach</option></select></div>
+    <button class="btn btn-primary btn-full" onclick="adminAddUser()">Crear cuenta</button>
+  </div>
+</div>
+
+<!-- VER INFORME -->
+<div class="modal-overlay" id="modal-report">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title" id="rpt-title">Informe</div><button class="modal-close" onclick="closeModal('modal-report')">✕</button></div>
+    <div class="ai-result" id="rpt-content"></div>
+    <div class="btn-row"><button class="btn btn-outline btn-sm" onclick="dlReportModal()">⬇ Descargar</button></div>
+  </div>
+</div>
+
+<script>
+// ─── CONFIG ───
+const API_KEY = '';
+const MODEL   = 'claude-sonnet-4-20250514';
+
+// ─── PROMPTS ───
+const SYS_BIO = `Eres un analista biomecánico profesional de bowling de alto rendimiento con experiencia en coaching técnico internacional. Eres parte del sistema BIOMECHANICS BOWLING ANALYSIS.
+
+Cuando recibas datos de un jugador genera un INFORME PROFESIONAL COMPLETO con estas secciones:
+
+1. PERFIL DEL JUGADOR — evaluación según edad, sexo y nivel
+2. EVALUACIÓN BIOMECÁNICA GENERAL — nivel técnico global con puntuación /10
+3. ANÁLISIS POR FASES — Setup inicial | Aproximación y footwork | Swing y liberación | Balance final
+4. TABLA DE ERRORES Y CORRECCIONES — errores detectados y correcciones específicas
+5. PLAN DE ENTRENAMIENTO PERSONALIZADO — en casa | en pista | reprogramación motora
+6. RECOMENDACIÓN DE BOLAS Y AJUSTES — según estilo y arsenal
+7. PROYECCIÓN DE MEJORA — potencial de promedio y consistencia estimada
+8. FRAMES CLAVE — describe los 4 momentos biomecánicos más importantes a observar en el video (setup, pre-swing, punto de liberación, balance final)
+
+Usa lenguaje profesional, claro y técnico como coach internacional de élite. El jugador debe sentir que recibe un análisis exclusivo y de alto valor. Responde SIEMPRE en español.`;
+
+const SYS_STRIKER = `Eres STRIKER, coach técnico y estratégico de bowling certificado AR2 Pan Am Bowling.
+Personalidad: Analítico, directo, profesional, confiable. Siempre en español.
+
+PROTOCOLO: Nunca asumas información. Escucha → Pregunta 2-4 datos → Analiza → Recomienda.
+
+FORMATO de soluciones:
+[EMOJI] SOLUCIÓN: [acción en 1-2 líneas]
+Por qué: [explicación técnica breve]
+IMPORTANTE: [qué observar después]
+[Pregunta de seguimiento]
+
+REGLAS: Máximo 6-8 líneas al dar soluciones. Usa emojis 🎯🎳💪🔥. Si el jugador está en medio del juego: máximo 3-4 líneas, acción inmediata. Si falta info: pregunta directamente.
+
+Al primer mensaje saluda con las opciones: Ajuste AHORA | Análisis post-juego | Selección de bola | Coaching mental | Consulta técnica.`;
+
+// ─── DB ───
+const DB={
+  get:k=>{try{return JSON.parse(localStorage.getItem(k))}catch{return null}},
+  set:(k,v)=>localStorage.setItem(k,JSON.stringify(v)),
+  del:k=>localStorage.removeItem(k)
+};
+function initDB(){
+  if(!DB.get('users')) DB.set('users',[{id:'admin-001',name:'Alicia',email:'alicia@bowlingpro.com',pass:'admin2025',role:'admin',created:new Date().toISOString()}]);
+  if(!DB.get('analyses')) DB.set('analyses',[]);
+}
+
+// ─── STATE ───
+let CU=null, PD=null, VD=[], lastRpt='', coachHist=[];
+const DONE={datos:false,videos:false,analisis:false,coach:false};
+
+// ─── SPLASH ───
+document.getElementById('splash-tap').onclick=document.getElementById('splash').onclick=showAuth;
+function showAuth(){
+  document.getElementById('splash').classList.add('out');
+  setTimeout(()=>{
+    const s=DB.get('currentUser');
+    if(s){CU=s;loadApp();return;}
+    document.getElementById('auth-screen').classList.add('active');
+  },400);
+}
+
+// ─── AUTH ───
+function switchTab(t){
+  document.querySelectorAll('.auth-tab').forEach((b,i)=>b.classList.toggle('active',i===(t==='login'?0:1)));
+  document.getElementById('tab-login').style.display=t==='login'?'block':'none';
+  document.getElementById('tab-register').style.display=t==='register'?'block':'none';
+}
+function doLogin(){
+  const e=document.getElementById('login-email').value.trim();
+  const p=document.getElementById('login-pass').value;
+  if(!e||!p){toast('Completá email y contraseña','err');return;}
+  const u=(DB.get('users')||[]).find(x=>x.email===e&&x.pass===p);
+  if(!u){toast('Email o contraseña incorrectos','err');return;}
+  CU=u;DB.set('currentUser',u);loadApp();
+}
+function doRegister(){
+  const n=document.getElementById('reg-name').value.trim();
+  const e=document.getElementById('reg-email').value.trim();
+  const p=document.getElementById('reg-pass').value;
+  if(!n||!e||!p){toast('Completá todos los campos','err');return;}
+  if(p.length<6){toast('Contraseña mínimo 6 caracteres','err');return;}
+  const users=DB.get('users')||[];
+  if(users.find(x=>x.email===e)){toast('Ya existe una cuenta con ese email','err');return;}
+  const u={id:'u-'+Date.now(),name:n,email:e,pass:p,role:'player',created:new Date().toISOString()};
+  users.push(u);DB.set('users',users);CU=u;DB.set('currentUser',u);loadApp();
+}
+function doLogout(){
+  DB.del('currentUser');CU=null;
+  document.getElementById('app').classList.remove('active');
+  document.getElementById('splash').classList.remove('out');
+  document.getElementById('auth-screen').classList.remove('active');
+}
+
+// ─── LOAD APP ───
+function loadApp(){
+  document.getElementById('auth-screen').classList.remove('active');
+  document.getElementById('app').classList.add('active');
+  document.getElementById('user-name-display').textContent=CU.name.split(' ')[0];
+  if(CU.role==='admin') document.getElementById('nav-admin').style.display='flex';
+  const s=DB.get('playerData-'+CU.id);
+  if(s){PD=s;markDone('datos');DONE.datos=true;}
+  updateProg();
+  loadHistory();
+  coachHist=[];
+  initCoach();
+}
+
+// ─── PAGES / MODALS ───
+function showPage(n,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+n).classList.add('active');
+  if(btn)btn.classList.add('active');
+  if(n==='admin')loadAdmin();
+}
+function openModal(id){document.getElementById(id).classList.add('open');document.body.style.overflow='hidden';}
+function closeModal(id){document.getElementById(id).classList.remove('open');document.body.style.overflow='';}
+document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)closeModal(m.id);}));
+
+// ─── DATOS ───
+function saveDatos(){
+  const n=document.getElementById('d-nombre').value.trim();
+  if(!n){toast('Ingresá el nombre del jugador','err');return;}
+  PD={nombre:n,edad:document.getElementById('d-edad').value,sexo:document.getElementById('d-sexo').value,mano:document.getElementById('d-mano').value,estilo:document.getElementById('d-estilo').value,promedio:document.getElementById('d-promedio').value,peso:document.getElementById('d-peso').value,nivel:document.getElementById('d-nivel').value,arsenal:document.getElementById('d-arsenal').value,aceite:document.getElementById('d-aceite').value,obs:document.getElementById('d-obs').value};
+  DB.set('playerData-'+CU.id,PD);
+  markDone('datos');DONE.datos=true;updateProg();closeModal('modal-datos');toast('✅ Datos guardados');
+}
+
+// ─── VIDEOS ───
+function handleVideos(files){
+  Array.from(files).slice(0,3-VD.length).forEach(f=>{if(VD.length<3)VD.push(f);});
+  renderVideos();
+}
+function renderVideos(){
+  document.getElementById('video-list').innerHTML=VD.map((f,i)=>`<div class="video-item"><div class="video-thumb"><video src="${URL.createObjectURL(f)}" muted playsinline></video></div><div class="video-info"><p>${f.name}</p><span>${(f.size/1024/1024).toFixed(1)} MB</span></div><button class="video-remove" onclick="VD.splice(${i},1);renderVideos()">✕</button></div>`).join('');
+  document.getElementById('video-count').textContent=`${VD.length}/3 videos seleccionados`;
+}
+function saveVideos(){
+  if(!VD.length){toast('Seleccioná al menos un video','err');return;}
+  markDone('videos');DONE.videos=true;updateProg();closeModal('modal-videos');toast(`✅ ${VD.length} video(s) listos`);
+}
+
+// ─── ANÁLISIS OPEN ───
+function openAnalisis(){
+  openModal('modal-analisis');
+  if(!PD){
+    document.getElementById('an-no-datos').style.display='block';
+    document.getElementById('an-ready').style.display='none';
+  } else {
+    document.getElementById('an-no-datos').style.display='none';
+    document.getElementById('an-ready').style.display='block';
+    document.getElementById('an-info').innerHTML=`✅ <strong>${PD.nombre}</strong> · ${PD.nivel||'—'} · Promedio ${PD.promedio||'—'} · ${VD.length} video(s)`;
+    document.getElementById('an-output').innerHTML='';
+    document.getElementById('an-actions').style.display='none';
+    const btn=document.getElementById('btn-generar');
+    btn.disabled=false;btn.textContent='🤖 Generar análisis con IA';
+  }
+}
+
+// ─── ANÁLISIS — CLAUDE API ───
+async function generarAnalisis(){
+  const btn=document.getElementById('btn-generar');
+  btn.disabled=true;btn.textContent='Generando...';
+  const out=document.getElementById('an-output');
+  out.innerHTML=`<div class="gen-box"><div class="spin"></div><strong style="color:var(--text);font-size:16px">Analizando al jugador...</strong><p>La IA está procesando los datos biomecánicos</p></div>`;
+
+  const userMsg=`Genera el informe biomecánico profesional completo para este jugador:
+
+DATOS DEL JUGADOR:
+Nombre: ${PD.nombre}
+Edad: ${PD.edad||'No especificada'}
+Sexo: ${PD.sexo||'No especificado'}
+Mano dominante: ${PD.mano||'No especificada'}
+Estilo de juego: ${PD.estilo||'No especificado'}
+Promedio actual: ${PD.promedio||'No especificado'}
+Nivel: ${PD.nivel||'No especificado'}
+Peso de bola: ${PD.peso||'No especificado'} lb
+Arsenal de bolas: ${PD.arsenal||'No especificado'}
+Tipo de aceitado: ${PD.aceite||'No especificado'}
+Observaciones: ${PD.obs||'Ninguna'}
+Videos de lanzamiento analizados: ${VD.length} video(s)
+
+Genera el informe completo y profesional.`;
+
+  try{
+    const res=await fetch('/.netlify/functions/claude',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:MODEL,max_tokens:4000,system:SYS_BIO,messages:[{role:'user',content:userMsg}]})
+    });
+    const data=await res.json();
+    if(!res.ok||data.error) throw new Error(data.error?.message||'Error en la API');
+    const full=data.content[0].text;
+    out.innerHTML='<div class="ai-result">'+fmtRpt(full)+'</div>';
+    lastRpt=full;
+    document.getElementById('an-actions').style.display='flex';
+    markDone('analisis');DONE.analisis=true;updateProg();
+    btn.textContent='✅ Listo — regenerar';btn.disabled=false;
+  }catch(err){
+    out.innerHTML='<div class="alert alert-orange">❌ '+err.message+'</div>';
+    btn.textContent='🤖 Generar análisis con IA';btn.disabled=false;
+  }
+}
+
+function fmtRpt(t){
+  return t.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/^#{1,3}\s(.+)$/gm,'<h3>$1</h3>').replace(/^---+$/gm,'<hr/>').replace(/\n/g,'<br/>');
+}
+function descargarInforme(){
+  if(!lastRpt)return;
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([lastRpt],{type:'text/plain;charset=utf-8'}));
+  a.download=`BowlingPro-${PD.nombre.replace(/\s+/g,'-')}-${new Date().toLocaleDateString('es-PA').replace(/\//g,'-')}.txt`;
+  a.click();toast('⬇ Informe descargado');
+}
+function guardarEnHistorial(){
+  if(!lastRpt)return;
+  const a=DB.get('analyses')||[];
+  a.unshift({id:'a-'+Date.now(),userId:CU.id,userName:CU.name,playerName:PD.nombre,type:'Análisis biomecánico',date:new Date().toLocaleDateString('es-PA'),content:lastRpt});
+  DB.set('analyses',a);loadHistory();toast('✅ Guardado en historial');
+}
+
+// ─── COACH ───
+function initCoach(){
+  const box=document.getElementById('chat-messages');
+  if(!box)return;
+  box.innerHTML='';coachHist=[];
+  addBot('🎳 ¡Hola! Soy **STRIKER**, tu coach de bowling.\n\n¿En qué situación estás?\n- 🎯 Ajuste AHORA (en medio del juego)\n- 🎳 Análisis post-juego\n- 🔍 Selección de bola/estrategia\n- 💪 Coaching mental\n- 📚 Consulta técnica');
+}
+
+async function sendCoach(){
+  const inp=document.getElementById('chat-input');
+  const msg=inp.value.trim();
+  const sbtn=document.getElementById('btn-send');
+  if(!msg||sbtn.disabled)return;
+  inp.value='';
+  addUser(msg);
+  coachHist.push({role:'user',content:msg});
+  const sys=SYS_STRIKER+(PD?`\n\nCONTEXTO DEL JUGADOR: ${PD.nombre}, ${PD.nivel||'—'}, promedio ${PD.promedio||'—'}, arsenal: ${PD.arsenal||'—'}, aceite: ${PD.aceite||'—'}, mano: ${PD.mano||'—'}, estilo: ${PD.estilo||'—'}. Usa estos datos para personalizar tus respuestas.`:'');
+  const tid=addTyping();sbtn.disabled=true;
+  try{
+    const res=await fetch('/.netlify/functions/claude',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:MODEL,max_tokens:700,system:sys,messages:coachHist})
+    });
+    const data=await res.json();
+    if(!res.ok||data.error) throw new Error(data.error?.message||'Error');
+    rmTyping(tid);
+    const full=data.content[0].text;
+    addBot(full);
+    coachHist.push({role:'assistant',content:full});
+    markDone('coach');DONE.coach=true;updateProg();
+  }catch(err){rmTyping(tid);addBot('❌ Error de conexión. Intentá de nuevo.');}
+  sbtn.disabled=false;inp.focus();
+}
+
+function coachQ(q){document.getElementById('chat-input').value=q;sendCoach();}
+function fmtChat(t){return t.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br/>');}
+
+function addUser(t){const b=document.getElementById('chat-messages');const d=document.createElement('div');d.className='chat-msg user';d.textContent=t;b.appendChild(d);b.scrollTop=9999;}
+function addBot(t){const b=document.getElementById('chat-messages');const d=document.createElement('div');d.className='chat-msg bot';d.innerHTML=fmtChat(t);b.appendChild(d);b.scrollTop=9999;return d;}
+function addBotStream(){const b=document.getElementById('chat-messages');const d=document.createElement('div');d.className='chat-msg bot streaming-cursor';b.appendChild(d);b.scrollTop=9999;return d;}
+function addTyping(){const b=document.getElementById('chat-messages');const id='t'+Date.now();const d=document.createElement('div');d.id=id;d.className='chat-msg bot';d.innerHTML='<div class="typing-dots"><span></span><span></span><span></span></div>';b.appendChild(d);b.scrollTop=9999;return id;}
+function rmTyping(id){const e=document.getElementById(id);if(e)e.remove();}
+
+// ─── PROGRESS ───
+function markDone(k){document.getElementById('card-'+k)?.classList.add('done');}
+function updateProg(){const n=Object.values(DONE).filter(Boolean).length;document.getElementById('prog-fill').style.width=(n/4*100)+'%';document.getElementById('prog-text').textContent=`${n} / 4 pasos`;}
+
+// ─── HISTORY ───
+function loadHistory(){
+  const all=DB.get('analyses')||[];
+  const mine=all.filter(a=>a.userId===CU.id);
+  const list=document.getElementById('history-list');
+  if(!mine.length){list.innerHTML='<div class="empty-state"><div class="ei">📋</div><p>Aún no tenés análisis guardados.<br/>Completá el flujo en Inicio para generar uno.</p></div>';return;}
+  list.innerHTML=mine.map(a=>`<div class="history-item" onclick="verInforme('${a.id}')"><div class="history-icon">🎳</div><div class="history-info"><h4>${a.playerName}</h4><p>${a.type} · ${a.date}</p></div><span class="badge badge-green">Ver</span></div>`).join('');
+}
+function verInforme(id){
+  const a=(DB.get('analyses')||[]).find(x=>x.id===id);
+  if(!a?.content)return;
+  document.getElementById('rpt-title').textContent=`${a.playerName} · ${a.date}`;
+  document.getElementById('rpt-content').innerHTML=fmtRpt(a.content);
+  window._rptData={content:a.content,name:a.playerName};
+  openModal('modal-report');
+}
+function dlReportModal(){
+  if(!window._rptData)return;
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([window._rptData.content],{type:'text/plain;charset=utf-8'}));
+  a.download=`BowlingPro-${window._rptData.name.replace(/\s+/g,'-')}.txt`;
+  a.click();
+}
+
+// ─── ADMIN ───
+function loadAdmin(){
+  const users=(DB.get('users')||[]).filter(u=>u.role!=='admin');
+  const analyses=DB.get('analyses')||[];
+  document.getElementById('stat-users').textContent=users.length;
+  document.getElementById('stat-analyses').textContent=analyses.length;
+  const today=new Date().toLocaleDateString('es-PA');
+  document.getElementById('stat-today').textContent=analyses.filter(a=>a.date===today).length;
+  document.getElementById('admin-users-table').innerHTML=!users.length
+    ?'<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:20px">Sin jugadores aún</td></tr>'
+    :users.map(u=>`<tr><td><strong>${u.name}</strong></td><td style="color:var(--muted)">${u.email}</td><td><span class="badge badge-${u.role==='coach'?'orange':'blue'}">${u.role}</span></td><td style="color:var(--muted)">${new Date(u.created).toLocaleDateString('es-PA')}</td><td><button class="btn btn-danger btn-sm" onclick="adminDel('${u.id}')">✕</button></td></tr>`).join('');
+  document.getElementById('admin-analyses-list').innerHTML=!analyses.length
+    ?'<div class="empty-state"><p>Sin análisis aún</p></div>'
+    :analyses.slice(0,15).map(a=>`<div class="history-item" onclick="verInforme('${a.id}')"><div class="history-icon">🎳</div><div class="history-info"><h4>${a.playerName} <span style="color:var(--muted);font-size:13px;font-weight:400">· ${a.userName}</span></h4><p>${a.type} · ${a.date}</p></div><span class="badge badge-green">Ver</span></div>`).join('');
+}
+function adminAddUser(){
+  const n=document.getElementById('au-name').value.trim();
+  const e=document.getElementById('au-email').value.trim();
+  const p=document.getElementById('au-pass').value;
+  const r=document.getElementById('au-role').value;
+  if(!n||!e||!p){toast('Completá todos los campos','err');return;}
+  const users=DB.get('users')||[];
+  if(users.find(u=>u.email===e)){toast('Ya existe ese email','err');return;}
+  users.push({id:'u-'+Date.now(),name:n,email:e,pass:p,role:r,created:new Date().toISOString()});
+  DB.set('users',users);closeModal('modal-add-user');loadAdmin();toast('✅ Jugador creado');
+  ['au-name','au-email','au-pass'].forEach(id=>document.getElementById(id).value='');
+}
+function adminDel(id){
+  if(!confirm('¿Eliminás este usuario?'))return;
+  DB.set('users',(DB.get('users')||[]).filter(u=>u.id!==id));loadAdmin();
+}
+function exportUsers(){
+  const u=(DB.get('users')||[]).filter(x=>x.role!=='admin');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['Nombre,Email,Rol,Fecha\n'+u.map(x=>`${x.name},${x.email},${x.role},${new Date(x.created).toLocaleDateString()}`).join('\n')],{type:'text/csv'}));
+  a.download='bowlingpro-jugadores.csv';a.click();
+}
+
+// ─── TOAST ───
+function toast(msg,type){
+  const t=document.createElement('div');t.textContent=msg;
+  Object.assign(t.style,{position:'fixed',bottom:'80px',left:'50%',transform:'translateX(-50%)',background:type==='err'?'#1c0a0a':'#0a1c0f',border:`1px solid ${type==='err'?'rgba(239,68,68,.4)':'rgba(34,197,94,.4)'}`,color:type==='err'?'#fca5a5':'#86efac',padding:'10px 20px',borderRadius:'8px',fontSize:'14px',zIndex:'9999',boxShadow:'0 4px 20px rgba(0,0,0,.5)',transition:'opacity .3s',whiteSpace:'nowrap'});
+  document.body.appendChild(t);
+  setTimeout(()=>{t.style.opacity='0';setTimeout(()=>t.remove(),300);},2500);
+}
+
+// ─── INIT ───
+initDB();
+</script>
+</body>
+</html>
